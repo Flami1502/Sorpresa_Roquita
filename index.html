@@ -1,0 +1,1170 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Carta de Navidad</title>
+
+<style>
+:root{
+  --gold:#d8b15a;
+  --gold2:#f3d58a;
+  --white:#f5f6ff;
+  --red:#b62424;
+  --shadow:14px 14px 0 rgba(0,0,0,.35);
+}
+
+/* FONDO GENERAL */
+body{
+  margin:0;
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  font-family:Arial,sans-serif;
+  background:
+    radial-gradient(900px 600px at 20% 15%, #0b2a5c, transparent 60%),
+    linear-gradient(160deg, #071b3a, #020b1f);
+  color:var(--white);
+  overflow-x:hidden;
+}
+
+/* ===== NIEVE ===== */
+.snow{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:2;
+  opacity:.9;
+}
+.snow::before,
+.snow::after{
+  content:"";
+  position:absolute;
+  inset:-200px 0 0 0;
+  background-repeat:repeat;
+  will-change: transform;
+  filter: blur(.2px);
+}
+.snow::before{
+  opacity:.55;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,.95) 0 1px, transparent 2px),
+    radial-gradient(circle, rgba(255,255,255,.75) 0 1.5px, transparent 3px),
+    radial-gradient(circle, rgba(255,255,255,.55) 0 1px, transparent 2px);
+  background-size: 220px 220px, 320px 320px, 180px 180px;
+  background-position: 0 0, 40px 60px, 120px 140px;
+  animation: snowFall1 14s linear infinite;
+}
+.snow::after{
+  opacity:.35;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,.85) 0 1px, transparent 2.5px),
+    radial-gradient(circle, rgba(255,255,255,.55) 0 1px, transparent 2.5px);
+  background-size: 260px 260px, 420px 420px;
+  background-position: 80px 20px, 160px 200px;
+  animation: snowFall2 22s linear infinite;
+}
+@keyframes snowFall1{
+  from{ transform: translateY(-40px); }
+  to{ transform: translateY(780px); }
+}
+@keyframes snowFall2{
+  from{ transform: translateY(-60px); }
+  to{ transform: translateY(980px); }
+}
+
+/* ===== MENSAJE INICIAL ===== */
+.intro{
+  position:fixed;
+  inset:0;
+  display:grid;
+  place-items:center;
+  z-index:9999;
+  background:#020b1f;
+}
+.introText{
+  font-size:clamp(26px,5vw,52px);
+  font-weight:900;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  color:var(--gold2);
+  opacity:0;
+  transition:opacity 1.8s ease;
+  text-align:center;
+  padding: 0 18px;
+}
+.introText.show{ opacity:1; }
+
+/* ===== TARJETA ===== */
+.table{
+  width:min(980px,100%);
+  padding:18px;
+  border:3px solid rgba(216,177,90,.35);
+  background:rgba(0,0,0,.15);
+  box-shadow:10px 10px 0 rgba(0,0,0,.25);
+  opacity:0;
+  transform:translateY(10px);
+  transition:opacity 1s ease, transform 1s ease;
+  z-index:5;
+  position:relative;
+}
+.table.show{
+  opacity:1;
+  transform:translateY(0);
+}
+
+.persp{ perspective:1600px; }
+
+.book{
+  position:relative;
+  width:100%;
+  height:min(620px,84vh);
+  overflow:hidden;
+  border:3px solid rgba(216,177,90,.75);
+  box-shadow:var(--shadow);
+  background:url("interior.png") center/cover no-repeat;
+  transform-style:preserve-3d;
+}
+.book::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.12);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ===== “PÁGINAS” internas (2 spreads) ===== */
+.spreads{
+  position:absolute;
+  inset:0;
+  z-index:1; /* por debajo de la portada */
+}
+
+.spread{
+  position:absolute;
+  inset:0;
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  height:100%;
+  align-items:stretch;
+  opacity:0;
+  transform: translateX(18px);
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events:none;
+}
+
+.spread.active{
+  opacity:1;
+  transform: translateX(0);
+  pointer-events:auto;
+}
+
+.spread::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.25);
+}
+
+/* ✅ Anti-descuadre */
+.page{
+  padding:18px;
+  padding-top:56px;
+  position:relative;
+  z-index:1;
+
+  height:100%;
+  box-sizing:border-box;
+
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+
+  min-height:0;
+}
+
+/* ===== PORTADA ===== */
+.cover{
+  position:absolute;
+  inset:0;
+  cursor:pointer;
+  z-index:10;
+  transform-origin:left center;
+  transform-style:preserve-3d;
+  transition:transform .9s cubic-bezier(.2,.9,.1,1);
+}
+.cover.open{ transform:rotateY(-155deg); }
+
+.front,.back{
+  position:absolute;
+  inset:0;
+  backface-visibility:hidden;
+}
+.front{ background:url("portada.png") center/cover no-repeat; }
+.back{
+  transform:rotateY(180deg);
+  background:url("interior.png") center/cover no-repeat;
+}
+
+/* ===== Panel ===== */
+.panel{
+  flex: 1;
+  min-height: 0;
+  height: auto;
+
+  background:rgba(0,0,0,.25);
+  border:2px solid rgba(216,177,90,.6);
+  border-radius:14px;
+  padding:12px;
+
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.photoHeader{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  min-height:22px;
+}
+
+.titleGold{
+  flex:1;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+
+  font-weight:900;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  font-size:13px;
+
+  background: linear-gradient(
+    180deg,
+    #fff2c2 0%,
+    #f3d58a 35%,
+    #d8b15a 65%,
+    #b08a32 100%
+  );
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.25),
+    0 2px 6px rgba(0,0,0,.45);
+}
+
+.counter{
+  flex:0 0 auto;
+  align-self:flex-start;
+  font-size:13px;
+  opacity:.9;
+  color:rgba(245,246,255,.9);
+}
+
+/* ===== Visor fotos ===== */
+.viewer{
+  flex:1;
+  min-height:0;
+  border-radius:14px;
+  overflow:hidden;
+  border:2px solid rgba(216,177,90,.55);
+  background:rgba(0,0,0,.25);
+  position:relative;
+}
+
+.viewer img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  opacity:1;
+  transition: opacity .25s ease;
+}
+.viewer img.fading{ opacity:0; }
+
+.controlsRow{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:auto;
+}
+
+.btn{
+  padding:8px 12px;
+  background:var(--red);
+  color:var(--white);
+  border:2px solid var(--gold);
+  border-radius:10px;
+  font-weight:800;
+  cursor:pointer;
+}
+.btnGhost{ background:rgba(0,0,0,.3); }
+.btn:active{ transform: translate(1px,1px); }
+
+/* ===== Página VIDEOS ===== */
+/* ✅ CAMBIO: un poquito más grande */
+.videoWrap{
+  flex: 1.55;         /* antes 1.35 */
+  min-height: 0;
+  border-radius:14px;
+  overflow:hidden;
+  border:2px solid rgba(216,177,90,.55);
+  background:rgba(0,0,0,.25);
+}
+.videoWrap video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+/* ✅ NUEVO: thumbnails + comentario */
+.videoThumbs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  align-items:center;
+}
+.vthumb{
+  border:2px solid rgba(216,177,90,.65);
+  background:rgba(0,0,0,.28);
+  color:rgba(245,246,255,.95);
+  border-radius:10px;
+  padding:6px 10px;
+  font-weight:900;
+  cursor:pointer;
+  letter-spacing:.04em;
+  user-select:none;
+}
+.vthumb.active{
+  background:rgba(182,36,36,.55);
+  border-color: rgba(243,213,138,.9);
+}
+.videoCaption{
+  font-size:13px;
+  line-height:1.25;
+  opacity:.95;
+  padding:8px 10px;
+  border:2px solid rgba(216,177,90,.45);
+  border-radius:12px;
+  background:rgba(0,0,0,.22);
+}
+
+/* ===== Texto derecha ===== */
+h1{
+  margin:0;
+  font-size:30px;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+
+  background: linear-gradient(
+    180deg,
+    #fff2c2 0%,
+    #f3d58a 35%,
+    #d8b15a 65%,
+    #b08a32 100%
+  );
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.25),
+    0 2px 6px rgba(0,0,0,.45);
+}
+
+.msg{
+  flex:1;
+  min-height:0;
+  background:rgba(0,0,0,.33);
+  border:2px solid rgba(216,177,90,.75);
+  padding:14px;
+  border-radius:14px;
+  font-size:18px;
+  line-height:1.45;
+  overflow:auto;
+  white-space:pre-wrap;
+}
+
+.textControls{
+  margin-top:auto;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.textCounter{
+  opacity:.9;
+  font-size:13px;
+}
+
+/* Responsive */
+@media(max-width:900px){
+  .spread{ grid-template-columns:1fr; }
+  .page{ padding-top:48px; }
+  .book{ height:auto; min-height: 760px; }
+  .panel{ min-height: 420px; }
+  .msg{ min-height:320px; }
+}
+
+/* ===== OVERLAY REGALO ===== */
+.giftOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  place-items:center;
+  background:rgba(0,0,0,.72);
+  z-index:99999;
+  padding:18px;
+}
+.giftOverlay.show{ display:grid; }
+
+.giftCard{
+  width:min(720px, 96vw);
+  border:2px solid rgba(216,177,90,.7);
+  background:rgba(0,0,0,.35);
+  box-shadow: 18px 18px 0 rgba(0,0,0,.35);
+  border-radius:18px;
+  padding:14px;
+  position:relative;
+}
+
+.giftClose{
+  position:absolute;
+  top:10px;
+  right:10px;
+  border:2px solid rgba(216,177,90,.7);
+  background:rgba(0,0,0,.35);
+  color:rgba(245,246,255,.95);
+  border-radius:10px;
+  font-weight:900;
+  cursor:pointer;
+  padding:6px 10px;
+}
+
+.giftBox{
+  width:220px;
+  height:180px;
+  margin:8px auto 10px;
+  position:relative;
+  transform: translateZ(0);
+}
+.giftBase{
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height:130px;
+  background: linear-gradient(180deg, rgba(182,36,36,.92), rgba(120,16,16,.92));
+  border:2px solid rgba(216,177,90,.6);
+  border-radius:16px;
+}
+.giftLid{
+  position:absolute;
+  left:-6px; right:-6px;
+  top:8px;
+  height:62px;
+  background: linear-gradient(180deg, rgba(182,36,36,.95), rgba(120,16,16,.95));
+  border:2px solid rgba(216,177,90,.6);
+  border-radius:16px;
+  transform-origin: 20% 100%;
+  transform: rotate(0deg) translateY(0);
+  transition: transform .75s cubic-bezier(.2,.9,.2,1);
+  box-shadow: 0 12px 0 rgba(0,0,0,.18);
+}
+.giftRibbonV{
+  position:absolute;
+  left:50%;
+  top:0;
+  transform:translateX(-50%);
+  width:22px;
+  height:100%;
+  background: linear-gradient(180deg, rgba(243,213,138,.95), rgba(176,138,50,.95));
+  border-radius:12px;
+  opacity:.95;
+}
+.giftRibbonH{
+  position:absolute;
+  left:0; right:0;
+  top:68px;
+  height:22px;
+  background: linear-gradient(180deg, rgba(243,213,138,.95), rgba(176,138,50,.95));
+  border-radius:12px;
+  opacity:.95;
+}
+.giftBow{
+  position:absolute;
+  left:50%;
+  top:0;
+  transform:translateX(-50%);
+  width:82px;
+  height:44px;
+  pointer-events:none;
+}
+.giftBow span{
+  position:absolute;
+  width:40px;
+  height:28px;
+  border:2px solid rgba(216,177,90,.75);
+  background: rgba(243,213,138,.7);
+  border-radius: 22px 22px 22px 8px;
+  top:10px;
+}
+.giftBow span:nth-child(1){
+  left:0;
+  transform: rotate(-18deg);
+}
+.giftBow span:nth-child(2){
+  right:0;
+  transform: rotate(18deg) scaleX(-1);
+  border-radius: 22px 22px 8px 22px;
+}
+
+.giftBox.open .giftLid{
+  transform: rotate(-55deg) translateY(-10px);
+}
+
+.giftVideoWrap{
+  width:100%;
+  border-radius:14px;
+  overflow:hidden;
+  border:2px solid rgba(216,177,90,.55);
+  background:rgba(0,0,0,.25);
+}
+.giftVideoWrap video{
+  width:100%;
+  max-height: 320px;
+  display:block;
+  object-fit:cover;
+}
+
+.giftHint{
+  margin-top:10px;
+  text-align:center;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-size:12px;
+  opacity:.9;
+}
+
+/* “El regalo es...” */
+.giftReveal{
+  margin: 10px auto 6px;
+  text-align:center;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  font-size:14px;
+  opacity:0;
+  transform: translateY(6px);
+  transition: opacity .55s ease, transform .55s ease;
+
+  background: linear-gradient(
+    180deg,
+    #fff2c2 0%,
+    #f3d58a 35%,
+    #d8b15a 65%,
+    #b08a32 100%
+  );
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.20),
+    0 2px 6px rgba(0,0,0,.45);
+}
+.giftReveal.show{
+  opacity:1;
+  transform: translateY(0);
+}
+
+/* ✅ imagen del regalo real */
+.giftImage{
+  display:none;
+  width:100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius:14px;
+  margin-top:10px;
+  border:2px solid rgba(216,177,90,.55);
+  background:rgba(0,0,0,.25);
+}
+.giftCard.showGiftImage .giftVideoWrap{ display:none; }
+.giftCard.showGiftImage .giftImage{ display:block; }
+</style>
+</head>
+
+<body>
+
+<div class="snow" aria-hidden="true"></div>
+
+<!-- MENSAJE SECUENCIAL -->
+<div class="intro" id="intro">
+  <div class="introText" id="text1">Feliz Navidad o en tu dialecto digamos...</div>
+  <div class="introText" id="text2" style="position:absolute;">BON NADAL Roquita...!</div>
+  <div class="introText" id="text3" style="position:absolute;">UN PEQUEÑO GESTO ASÍ QUE PREPARATE....</div>
+</div>
+
+<!-- TARJETA -->
+<div class="table" id="card">
+  <div class="persp">
+    <div class="book">
+
+      <!-- PÁGINAS INTERNAS (2) -->
+      <div class="spreads">
+
+        <!-- ===== SPREAD 1: Fotos + Texto ===== -->
+        <div class="spread active" id="spread1">
+
+          <!-- IZQUIERDA -->
+          <div class="page">
+            <div class="panel">
+              <div class="photoHeader">
+                <div class="titleGold">LOS MOMENTOS PRIME DE ESTE VA Y VEN 2025</div>
+                <div class="counter" id="photoCount">1 / 1</div>
+              </div>
+
+              <div class="viewer">
+                <img id="img" src="fotos/foto1.jpg" alt="foto">
+              </div>
+
+              <div class="controlsRow">
+                <button class="btn btnGhost" id="prevBtn">◀</button>
+                <button class="btn btnGhost" id="nextBtn">▶</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- DERECHA -->
+          <div class="page">
+            <h1>Feliz Navidad</h1>
+
+            <div class="msg" id="msg"></div>
+
+            <div class="textControls">
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn btnGhost" id="prevText">Texto ◀</button>
+                <button class="btn btnGhost" id="nextText">Texto ▶</button>
+                <button class="btn" id="goVideos">Ver videos ▶</button>
+              </div>
+              <div class="textCounter" id="textCount">1 / 1</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ===== SPREAD 2: Videos ===== -->
+        <div class="spread" id="spread2">
+
+          <!-- IZQUIERDA: visor de videos -->
+          <div class="page">
+            <div class="panel">
+              <div class="photoHeader">
+                <div class="titleGold">VIDEOS</div>
+                <div class="counter" id="videoCount">1 / 1</div>
+              </div>
+
+              <div class="videoWrap">
+                <video id="vid" autoplay playsinline></video>
+              </div>
+
+              <!-- ✅ NUEVO: thumbnails + comentario -->
+              <div class="videoThumbs" id="videoThumbs"></div>
+              <div class="videoCaption" id="videoCaption"></div>
+
+              <div class="controlsRow">
+                <button class="btn btnGhost" id="backFromVideos">◀ Volver</button>
+                <button class="btn btnGhost" id="prevVideo">◀</button>
+                <button class="btn btnGhost" id="nextVideo">▶</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- DERECHA -->
+          <div class="page">
+            <h1>Cristoooooo hay mas</h1>
+
+            <div class="msg" style="font-size:16px; line-height:1.4;">
+              Que pensabas que sería todo? No soy tan soso como tu tonta
+              <br>
+              Para ser honestos no se si estos videos nos suben el aura o mas bien nos dejan en una posicion humilde , aun asi, y a excepcion de unos que si son prime, son momentos aprecio muchísimo.
+              <br>
+              Bueno puede que haya una cosita mas a ver si descubres que hacer (es facil anda no seas lenta)
+              <br>
+              Por ultimo, gracias por aguantar a este chamito y espero que esto te haga feliz.
+              <br>
+              Te quiere : El nene
+              <br>
+              Ameeeeeeen cambio y fuera!
+            </div>
+
+            <div class="textControls">
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button class="btn" id="surpriseHere">Sorpresa presiona aquí</button>
+              </div>
+              <div class="textCounter" id="videoHint">🎄</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- PORTADA -->
+      <div class="cover" id="cover" title="Click para abrir/cerrar">
+        <div class="front"></div>
+        <div class="back"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== OVERLAY SORPRESA (REGALO) ===== -->
+<div class="giftOverlay" id="giftOverlay" aria-hidden="true">
+  <div class="giftCard" id="giftCard">
+    <button class="giftClose" id="giftClose" aria-label="Cerrar">✕</button>
+
+    <div class="giftBox" id="giftBox">
+      <div class="giftLid"></div>
+      <div class="giftBase"></div>
+      <div class="giftRibbonV"></div>
+      <div class="giftRibbonH"></div>
+      <div class="giftBow">
+        <span></span><span></span>
+      </div>
+    </div>
+
+    <div class="giftVideoWrap">
+      <video id="giftVideo" playsinline></video>
+    </div>
+
+    <img class="giftImage" id="giftImage" alt="Regalo" />
+
+    <div class="giftReveal" id="giftReveal">El regalo es...</div>
+    <div class="giftHint">🎁 Sorpresa</div>
+  </div>
+</div>
+
+<script>
+/* ===== INTRO SECUENCIA ===== */
+const intro = document.getElementById("intro");
+const t1 = document.getElementById("text1");
+const t2 = document.getElementById("text2");
+const t3 = document.getElementById("text3");
+const card = document.getElementById("card");
+
+setTimeout(()=>t1.classList.add("show"), 800);
+setTimeout(()=>t1.classList.remove("show"), 4200);
+setTimeout(()=>t2.classList.add("show"), 4800);
+setTimeout(()=>t2.classList.remove("show"), 8200);
+setTimeout(()=>t3.classList.add("show"), 8800);
+setTimeout(()=>t3.classList.remove("show"), 12200);
+
+setTimeout(()=>{
+  intro.style.display="none";
+  card.classList.add("show");
+  startAutoSlide(); // fotos automáticas 5s
+}, 13000);
+
+/* ===== PORTADA ===== */
+const cover = document.getElementById("cover");
+cover.onclick = () => cover.classList.toggle("open");
+
+/* ===== NAVEGACIÓN PÁGINAS (SPREADS) ===== */
+const spread1 = document.getElementById("spread1");
+const spread2 = document.getElementById("spread2");
+const goVideosBtn = document.getElementById("goVideos");
+const backFromVideosBtn = document.getElementById("backFromVideos");
+
+function showSpread(n){
+  const is1 = (n === 1);
+  spread1.classList.toggle("active", is1);
+  spread2.classList.toggle("active", !is1);
+
+  if(!is1){
+    playVideo(vi, { trySound: true });
+  } else {
+    try{ vid.pause(); }catch(e){}
+  }
+}
+
+goVideosBtn.addEventListener("click", () => showSpread(2));
+backFromVideosBtn.addEventListener("click", () => showSpread(1));
+
+/* ===== FOTOS (20 espacios) + AUTO SLIDE ===== */
+const slides = [
+  { src: "fotos/foto1.jpg" },
+  { src: "fotos/foto2.jpg" },
+  { src: "fotos/foto3.jpg" },
+  { src: "fotos/foto4.jpg" },
+  { src: "fotos/foto5.jpg" },
+  { src: "fotos/foto6.jpg" },
+  { src: "fotos/foto7.jpg" },
+  { src: "fotos/foto8.jpg" },
+  { src: "fotos/foto9.jpg" },
+  { src: "fotos/foto10.jpg" },
+  { src: "fotos/foto11.jpg" },
+  { src: "fotos/foto12.jpg" },
+  { src: "fotos/foto13.jpg" },
+  { src: "fotos/foto14.jpg" },
+  { src: "fotos/foto15.jpg" },
+  { src: "fotos/foto16.jpg" },
+  { src: "fotos/foto17.jpg" },
+  { src: "fotos/foto18.jpg" },
+  { src: "fotos/foto19.jpg" },
+  { src: "fotos/foto20.jpg" },
+  { src: "fotos/foto21.jpg" },
+  { src: "fotos/foto22.jpg" },
+  { src: "fotos/foto23.jpg" },
+  { src: "fotos/foto24.jpg" },
+  { src: "fotos/foto25.jpg" },
+  { src: "fotos/foto26.jpg" },
+  { src: "fotos/foto27.jpg" },
+  { src: "fotos/foto28.jpg" },
+  { src: "fotos/foto29.jpg" }
+];
+
+let i = 0;
+const img = document.getElementById("img");
+const photoCount = document.getElementById("photoCount");
+
+function showPhoto(withFade=false){
+  if(withFade){
+    img.classList.add("fading");
+    setTimeout(() => {
+      img.src = slides[i].src;
+      photoCount.textContent = `${i+1} / ${slides.length}`;
+      img.classList.remove("fading");
+    }, 180);
+    return;
+  }
+  img.src = slides[i].src;
+  photoCount.textContent = `${i+1} / ${slides.length}`;
+}
+
+function prevPhoto(){
+  i = (i - 1 + slides.length) % slides.length;
+  showPhoto(true);
+  restartAutoSlide();
+}
+function nextPhoto(){
+  i = (i + 1) % slides.length;
+  showPhoto(true);
+  restartAutoSlide();
+}
+
+document.getElementById("prevBtn").addEventListener("click", prevPhoto);
+document.getElementById("nextBtn").addEventListener("click", nextPhoto);
+
+window.addEventListener("keydown", (e) => {
+  if(e.key === "ArrowLeft") prevPhoto();
+  if(e.key === "ArrowRight") nextPhoto();
+});
+
+showPhoto(false);
+
+const AUTO_MS = 5000;
+let autoTimer = null;
+
+function startAutoSlide(){
+  stopAutoSlide();
+  autoTimer = setInterval(() => {
+    i = (i + 1) % slides.length;
+    showPhoto(true);
+  }, AUTO_MS);
+}
+function stopAutoSlide(){
+  if(autoTimer){
+    clearInterval(autoTimer);
+    autoTimer = null;
+  }
+}
+function restartAutoSlide(){
+  startAutoSlide();
+}
+/* ===== TEXTOS + TYPEWRITER ===== */
+const textos = [
+  "Aqui tu nene cambio...\n\n Si estás leyendo esto significa que hemos llegado hasta Navidad  (y que todavía no me has chutado ).\n\n Y bueno en Venezuela el 24 se dan los regalos entonces, te he preparado este gestico.\n\nFeliz Navidad, gordita ❤️. Ojalá se te cumplan los deseos, te llenen de regalos y que uno sea un desodorante si es posible, te rodee la gente que te quiere.",
+  "¿Sigues por ahí? No te vayas todavía…\n\nSolo quería decirte que me alegra muchísimo que hayas aparecido en mi vida y que sigas. A veces todo esto parece un sueño lucido feliz de esos. \n\n¿Quién nos iba a decir hace tres meses que una catalanita gitanita y un caribeño medio europeo acabarían en esta situación por unos días en una isla",
+  "Buenos solo para decirte que menos mal que eres inteligente, chambeadora, creativa, graciosa (aveces), me sorprendes cuando escuchas o te metes en conversaciones ajenas en el metro por que te gusta analizar grupos o parejitas por ahi y  bueno esa actitud que tienes de que todo se puede y de que se pueden hacer 7 planes en 2 horas (Que aveces nos hace estar siempre ir con prisa) que me encanta. Esta carta aparte es para que recuerdes que puedes con todo!! La cocina y el orden tenemos que ir mejorandolo",
+  "Ya nos hemos aguantado por tres meses! Hemos vivido muchas, y lo de que tu madre nos regañe por audio solidifica esto que estamos contruyendo \n\n A la izquierda tienes un recopilatorio de unos fotos cuidadosamente seleccionadas que resumen estos meses!"
+];
+
+let ti = 0;
+const msg = document.getElementById("msg");
+const textCount = document.getElementById("textCount");
+
+let typingTimer = null;
+const TYPE_SPEED_MS = 18;
+const TYPE_START_DELAY_MS = 80;
+
+function typeText(el, text){
+  if(typingTimer){
+    clearTimeout(typingTimer);
+    typingTimer = null;
+  }
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduceMotion){
+    el.textContent = text;
+    return;
+  }
+  el.textContent = "";
+  let idx = 0;
+  const step = () => {
+    el.textContent += text.charAt(idx);
+    idx++;
+    if(idx < text.length){
+      typingTimer = setTimeout(step, TYPE_SPEED_MS);
+    } else {
+      typingTimer = null;
+    }
+  };
+  typingTimer = setTimeout(step, TYPE_START_DELAY_MS);
+}
+
+function renderText(){
+  textCount.textContent = `${ti+1} / ${textos.length}`;
+  typeText(msg, textos[ti]);
+}
+
+document.getElementById("prevText").addEventListener("click", () => {
+  ti = (ti - 1 + textos.length) % textos.length;
+  renderText();
+});
+document.getElementById("nextText").addEventListener("click", () => {
+  ti = (ti + 1) % textos.length;
+  renderText();
+});
+renderText();
+
+/* ==================================================
+   PÁGINA 2: VIDEOS EN ORDEN (CON SONIDO)
+   + "ALARGAR" VIDEOS REPITIENDO
+   + ✅ thumbnails con comentario
+   ================================================== */
+const videos = [
+  { src: "videos/vid1.mp4",  label: "1", comment: " Simplemente aura..." },
+  { src: "videos/vid2.mp4",  label: "2", comment: " Gitanada historica... Durisimo" },
+  { src: "videos/vid3.mp4",  label: "3", comment: " Pocilgada  jajaj si parece ordenado comparado 🔥 " },
+  { src: "videos/vid4.mp4",  label: "4", comment: " Comico pero me da arrechera como me mandas recorgerlo.. mala" },
+  { src: "videos/vid5.mp4",  label: "5", comment: " Con mi pana el caracol Jesus 😈 " },
+  { src: "videos/vid6.mp4",  label: "6", comment: " Estudiando dice🥹 " },
+  { src: "videos/vid7.mp4",  label: "7", comment: " 'MONchalan'☠️ (No sabe ingles)" },
+  { src: "videos/vid8.mp4",  label: "8", comment: " Sin comentarios " }
+];
+
+const vid = document.getElementById("vid");
+const videoCount = document.getElementById("videoCount");
+const prevVideoBtn = document.getElementById("prevVideo");
+const nextVideoBtn = document.getElementById("nextVideo");
+const surpriseHereBtn = document.getElementById("surpriseHere");
+
+const videoThumbs = document.getElementById("videoThumbs");
+const videoCaption = document.getElementById("videoCaption");
+
+let vi = 0;
+
+const LOOPS_PER_VIDEO = 2;
+let loopsLeft = LOOPS_PER_VIDEO;
+
+const VIDEO_FALLBACK_MS = 30000;
+let videoTimer = null;
+
+function updateVideoUI(){
+  videoCount.textContent = `${vi+1} / ${videos.length}`;
+}
+
+function clearVideoTimer(){
+  if(videoTimer){
+    clearTimeout(videoTimer);
+    videoTimer = null;
+  }
+}
+
+function armVideoFallback(){
+  clearVideoTimer();
+  videoTimer = setTimeout(() => {
+    if(spread2.classList.contains("active")){
+      nextVideo();
+    }
+  }, VIDEO_FALLBACK_MS);
+}
+
+/* ✅ NUEVO: render thumbnails */
+function renderVideoThumbs(){
+  if(!videoThumbs || !videos.length) return;
+  videoThumbs.innerHTML = "";
+  videos.forEach((v, idx) => {
+    const b = document.createElement("button");
+    b.className = "vthumb" + (idx === vi ? " active" : "");
+    b.type = "button";
+    b.textContent = v.label || String(idx+1);
+    b.title = v.comment || "";
+    b.addEventListener("click", () => playVideo(idx, { trySound: true }));
+    videoThumbs.appendChild(b);
+  });
+}
+
+function setVideoCaption(){
+  if(!videoCaption) return;
+  const v = videos[vi];
+  videoCaption.textContent = v?.comment ? `“${v.comment}”` : "";
+}
+
+function syncThumbActive(){
+  if(!videoThumbs) return;
+  [...videoThumbs.children].forEach((el, idx) => {
+    el.classList.toggle("active", idx === vi);
+  });
+}
+
+function playVideo(idx, opts = {}){
+  if(videos.length === 0) return;
+  vi = (idx + videos.length) % videos.length;
+
+  loopsLeft = LOOPS_PER_VIDEO;
+
+  updateVideoUI();
+  syncThumbActive();
+  setVideoCaption();
+
+  vid.loop = false;
+  vid.src = videos[vi].src;
+  vid.load();
+
+  if(opts.trySound){
+    vid.muted = false;
+    vid.volume = 1.0;
+  }
+
+  const p = vid.play();
+  if(p && typeof p.catch === "function"){
+    p.catch(() => {});
+  }
+
+  armVideoFallback();
+}
+
+function prevVideo(){ playVideo(vi - 1, { trySound: true }); }
+function nextVideo(){ playVideo(vi + 1, { trySound: true }); }
+
+vid.addEventListener("ended", () => {
+  if(!spread2.classList.contains("active")) return;
+
+  loopsLeft--;
+  if(loopsLeft > 0){
+    vid.currentTime = 0;
+    const p = vid.play();
+    if(p && typeof p.catch === "function") p.catch(()=>{});
+    armVideoFallback();
+  } else {
+    nextVideo();
+  }
+});
+
+prevVideoBtn.addEventListener("click", prevVideo);
+nextVideoBtn.addEventListener("click", nextVideo);
+
+/* ==================================================
+   SORPRESA: “El regalo es...” -> abre -> video corto
+   y al terminar, sale la IMAGEN del regalo real
+   ================================================== */
+const giftOverlay = document.getElementById("giftOverlay");
+const giftClose = document.getElementById("giftClose");
+const giftCard = document.getElementById("giftCard");
+const giftBox = document.getElementById("giftBox");
+const giftVideo = document.getElementById("giftVideo");
+const giftReveal = document.getElementById("giftReveal");
+const giftImage = document.getElementById("giftImage");
+const giftHint = document.querySelector(".giftHint");
+
+// tu vídeo corto de sorpresa:
+const GIFT_VIDEO_SRC = "videos/sorpresa.mp4";
+/* ✅ FIX mínimo para que funcione en hosting */
+const GIFT_IMAGE_SRC = "fotos/sorpresa.jpg";
+
+function openGift(){
+  giftOverlay.classList.add("show");
+  giftOverlay.setAttribute("aria-hidden","false");
+
+  // reset overlay state
+  giftCard.classList.remove("showGiftImage");
+  giftBox.classList.remove("open");
+  giftReveal.classList.remove("show");
+
+  // reset video
+  giftVideo.pause();
+  giftVideo.currentTime = 0;
+  giftVideo.src = GIFT_VIDEO_SRC;
+  giftVideo.muted = false;
+  giftVideo.volume = 1.0;
+  giftVideo.load();
+
+  // prepare image
+  giftImage.src = GIFT_IMAGE_SRC;
+
+  // 1) mostrar “El regalo es...”
+  setTimeout(() => {
+    giftReveal.classList.add("show");
+  }, 220);
+
+  // 2) abrir regalo
+  setTimeout(() => {
+    giftBox.classList.add("open");
+  }, 1100);
+
+  // 3) reproducir video
+  setTimeout(() => {
+    const p = giftVideo.play();
+    if(p && typeof p.catch === "function") p.catch(()=>{});
+  }, 1450);
+}
+
+function closeGift(){
+  giftOverlay.classList.remove("show");
+  giftOverlay.setAttribute("aria-hidden","true");
+  giftCard.classList.remove("showGiftImage");
+  giftBox.classList.remove("open");
+  giftReveal.classList.remove("show");
+  giftVideo.pause();
+  giftVideo.currentTime = 0;
+}
+
+// ✅ Al terminar el video: mostrar imagen del regalo real (NO cerrar)
+giftVideo.addEventListener("ended", () => {
+  giftCard.classList.add("showGiftImage");
+  if(giftHint){
+    giftHint.textContent = "Es broma nena, nos vamos a bailar! dale click a la imagen !";
+  }
+});
+
+surpriseHereBtn.addEventListener("click", openGift);
+giftClose.addEventListener("click", closeGift);
+giftOverlay.addEventListener("click", (e) => {
+  if(e.target === giftOverlay) closeGift();
+});
+
+/* ===== INIT ===== */
+if(videos.length > 0){
+  updateVideoUI();
+  vid.src = videos[0].src;
+  vid.muted = false;
+  renderVideoThumbs();
+  setVideoCaption();
+}
+</script>
+
+</body>
+</html>
