@@ -125,6 +125,15 @@ body{
   background:url("interior.png") center/cover no-repeat;
   transform-style:preserve-3d;
 }
+
+/* ✅ PATCH 1: viewport fix (evita saltos por barra del navegador en móvil) */
+@supports (height: 100svh){
+  .book{ height: min(620px, 84svh); }
+}
+@supports (height: 100dvh){
+  .book{ height: min(620px, 84dvh); }
+}
+
 .book::before{
   content:"";
   position:absolute;
@@ -309,9 +318,8 @@ body{
 .btn:active{ transform: translate(1px,1px); }
 
 /* ===== Página VIDEOS ===== */
-/* ✅ CAMBIO: un poquito más grande */
 .videoWrap{
-  flex: 1.55;         /* antes 1.35 */
+  flex: 1.55;
   min-height: 0;
   border-radius:14px;
   overflow:hidden;
@@ -409,6 +417,11 @@ h1{
   font-size:13px;
 }
 
+/* ✅ PATCH 3: estabilidad flex (evita colapsos raros en navegadores) */
+.panel, .viewer, .videoWrap, .msg{
+  min-height:0;
+}
+
 /* Responsive */
 @media(max-width:900px){
   .spread{ grid-template-columns:1fr; }
@@ -416,6 +429,9 @@ h1{
   .book{ height:auto; min-height: 760px; }
   .panel{ min-height: 420px; }
   .msg{ min-height:320px; }
+
+  /* ✅ PATCH 2: en móvil no recortar cosas por overflow */
+  .book{ overflow: visible; }
 }
 
 /* ===== OVERLAY REGALO ===== */
@@ -679,7 +695,7 @@ h1{
                 <video id="vid" autoplay playsinline></video>
               </div>
 
-              <!-- ✅ NUEVO: thumbnails + comentario -->
+              <!-- thumbnails + comentario -->
               <div class="videoThumbs" id="videoThumbs"></div>
               <div class="videoCaption" id="videoCaption"></div>
 
@@ -803,7 +819,7 @@ function showSpread(n){
 goVideosBtn.addEventListener("click", () => showSpread(2));
 backFromVideosBtn.addEventListener("click", () => showSpread(1));
 
-/* ===== FOTOS (20 espacios) + AUTO SLIDE ===== */
+/* ===== FOTOS + AUTO SLIDE ===== */
 const slides = [
   { src: "fotos/foto1.jpg" },
   { src: "fotos/foto2.jpg" },
@@ -894,6 +910,7 @@ function stopAutoSlide(){
 function restartAutoSlide(){
   startAutoSlide();
 }
+
 /* ===== TEXTOS + TYPEWRITER ===== */
 const textos = [
   "Aqui tu nene cambio...\n\n Si estás leyendo esto significa que hemos llegado hasta Navidad  (y que todavía no me has chutado ).\n\n Y bueno en Venezuela el 24 se dan los regalos entonces, te he preparado este gestico.\n\nFeliz Navidad, gordita ❤️. Ojalá se te cumplan los deseos, te llenen de regalos y que uno sea un desodorante si es posible, te rodee la gente que te quiere.",
@@ -949,11 +966,7 @@ document.getElementById("nextText").addEventListener("click", () => {
 });
 renderText();
 
-/* ==================================================
-   PÁGINA 2: VIDEOS EN ORDEN (CON SONIDO)
-   + "ALARGAR" VIDEOS REPITIENDO
-   + ✅ thumbnails con comentario
-   ================================================== */
+/* ===== VIDEOS + thumbnails ===== */
 const videos = [
   { src: "videos/vid1.mp4",  label: "1", comment: " Simplemente aura..." },
   { src: "videos/vid2.mp4",  label: "2", comment: " Gitanada historica... Durisimo" },
@@ -1002,7 +1015,6 @@ function armVideoFallback(){
   }, VIDEO_FALLBACK_MS);
 }
 
-/* ✅ NUEVO: render thumbnails */
 function renderVideoThumbs(){
   if(!videoThumbs || !videos.length) return;
   videoThumbs.innerHTML = "";
@@ -1077,10 +1089,7 @@ vid.addEventListener("ended", () => {
 prevVideoBtn.addEventListener("click", prevVideo);
 nextVideoBtn.addEventListener("click", nextVideo);
 
-/* ==================================================
-   SORPRESA: “El regalo es...” -> abre -> video corto
-   y al terminar, sale la IMAGEN del regalo real
-   ================================================== */
+/* ===== REGALO ===== */
 const giftOverlay = document.getElementById("giftOverlay");
 const giftClose = document.getElementById("giftClose");
 const giftCard = document.getElementById("giftCard");
@@ -1090,21 +1099,17 @@ const giftReveal = document.getElementById("giftReveal");
 const giftImage = document.getElementById("giftImage");
 const giftHint = document.querySelector(".giftHint");
 
-// tu vídeo corto de sorpresa:
 const GIFT_VIDEO_SRC = "videos/sorpresa.mp4";
-/* ✅ FIX mínimo para que funcione en hosting */
 const GIFT_IMAGE_SRC = "fotos/sorpresa.jpg";
 
 function openGift(){
   giftOverlay.classList.add("show");
   giftOverlay.setAttribute("aria-hidden","false");
 
-  // reset overlay state
   giftCard.classList.remove("showGiftImage");
   giftBox.classList.remove("open");
   giftReveal.classList.remove("show");
 
-  // reset video
   giftVideo.pause();
   giftVideo.currentTime = 0;
   giftVideo.src = GIFT_VIDEO_SRC;
@@ -1112,20 +1117,10 @@ function openGift(){
   giftVideo.volume = 1.0;
   giftVideo.load();
 
-  // prepare image
   giftImage.src = GIFT_IMAGE_SRC;
 
-  // 1) mostrar “El regalo es...”
-  setTimeout(() => {
-    giftReveal.classList.add("show");
-  }, 220);
-
-  // 2) abrir regalo
-  setTimeout(() => {
-    giftBox.classList.add("open");
-  }, 1100);
-
-  // 3) reproducir video
+  setTimeout(() => { giftReveal.classList.add("show"); }, 220);
+  setTimeout(() => { giftBox.classList.add("open"); }, 1100);
   setTimeout(() => {
     const p = giftVideo.play();
     if(p && typeof p.catch === "function") p.catch(()=>{});
@@ -1142,7 +1137,6 @@ function closeGift(){
   giftVideo.currentTime = 0;
 }
 
-// ✅ Al terminar el video: mostrar imagen del regalo real (NO cerrar)
 giftVideo.addEventListener("ended", () => {
   giftCard.classList.add("showGiftImage");
   if(giftHint){
