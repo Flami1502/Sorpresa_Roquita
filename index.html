@@ -125,15 +125,6 @@ body{
   background:url("interior.png") center/cover no-repeat;
   transform-style:preserve-3d;
 }
-
-/* ✅ PATCH 1: viewport fix (evita saltos por barra del navegador en móvil) */
-@supports (height: 100svh){
-  .book{ height: min(620px, 84svh); }
-}
-@supports (height: 100dvh){
-  .book{ height: min(620px, 84dvh); }
-}
-
 .book::before{
   content:"";
   position:absolute;
@@ -276,7 +267,7 @@ body{
   color:rgba(245,246,255,.9);
 }
 
-/* ===== Visor Fotos ===== */
+/* ===== Visor fotos ===== */
 .viewer{
   flex:1;
   min-height:0;
@@ -318,8 +309,9 @@ body{
 .btn:active{ transform: translate(1px,1px); }
 
 /* ===== Página VIDEOS ===== */
+/* ✅ CAMBIO: un poquito más grande */
 .videoWrap{
-  flex: 1.55;
+  flex: 1.55;         /* antes 1.35 */
   min-height: 0;
   border-radius:14px;
   overflow:hidden;
@@ -417,11 +409,6 @@ h1{
   font-size:13px;
 }
 
-/* ✅ PATCH 3: estabilidad flex (evita colapsos raros en navegadores) */
-.panel, .viewer, .videoWrap, .msg{
-  min-height:0;
-}
-
 /* Responsive */
 @media(max-width:900px){
   .spread{ grid-template-columns:1fr; }
@@ -429,9 +416,6 @@ h1{
   .book{ height:auto; min-height: 760px; }
   .panel{ min-height: 420px; }
   .msg{ min-height:320px; }
-
-  /* ✅ PATCH 2: en móvil no recortar cosas por overflow */
-  .book{ overflow: visible; }
 }
 
 /* ===== OVERLAY REGALO ===== */
@@ -652,7 +636,7 @@ h1{
               </div>
 
               <div class="viewer">
-                <img id="img" src="Fotos/foto1.jpg" alt="foto">
+                <img id="img" src="fotos/foto1.jpg" alt="foto">
               </div>
 
               <div class="controlsRow">
@@ -695,7 +679,7 @@ h1{
                 <video id="vid" autoplay playsinline></video>
               </div>
 
-              <!-- thumbnails + comentario -->
+              <!-- ✅ NUEVO: thumbnails + comentario -->
               <div class="videoThumbs" id="videoThumbs"></div>
               <div class="videoCaption" id="videoCaption"></div>
 
@@ -791,7 +775,7 @@ setTimeout(()=>t3.classList.remove("show"), 12200);
 setTimeout(()=>{
   intro.style.display="none";
   card.classList.add("show");
-  startAutoSlide(); // Fotos automáticas 5s
+  startAutoSlide(); // fotos automáticas 5s
 }, 13000);
 
 /* ===== PORTADA ===== */
@@ -819,37 +803,37 @@ function showSpread(n){
 goVideosBtn.addEventListener("click", () => showSpread(2));
 backFromVideosBtn.addEventListener("click", () => showSpread(1));
 
-/* ===== Fotos + AUTO SLIDE ===== */
+/* ===== FOTOS (20 espacios) + AUTO SLIDE ===== */
 const slides = [
-  { src: "Fotos/foto1.jpg" },
-  { src: "Fotos/foto2.jpg" },
-  { src: "Fotos/foto3.jpg" },
-  { src: "Fotos/foto4.jpg" },
-  { src: "Fotos/foto5.jpg" },
-  { src: "Fotos/foto6.jpg" },
-  { src: "Fotos/foto7.jpg" },
-  { src: "Fotos/foto8.jpg" },
-  { src: "Fotos/foto9.jpg" },
-  { src: "Fotos/foto10.jpg" },
-  { src: "Fotos/foto11.jpg" },
-  { src: "Fotos/foto12.jpg" },
-  { src: "Fotos/foto13.jpg" },
-  { src: "Fotos/foto14.jpg" },
-  { src: "Fotos/foto15.jpg" },
-  { src: "Fotos/foto16.jpg" },
-  { src: "Fotos/foto17.jpg" },
-  { src: "Fotos/foto18.jpg" },
-  { src: "Fotos/foto19.jpg" },
-  { src: "Fotos/foto20.jpg" },
-  { src: "Fotos/foto21.jpg" },
-  { src: "Fotos/foto22.jpg" },
-  { src: "Fotos/foto23.jpg" },
-  { src: "Fotos/foto24.jpg" },
-  { src: "Fotos/foto25.jpg" },
-  { src: "Fotos/foto26.jpg" },
-  { src: "Fotos/foto27.jpg" },
-  { src: "Fotos/foto28.jpg" },
-  { src: "Fotos/foto29.jpg" }
+  { src: "fotos/foto1.jpg" },
+  { src: "fotos/foto2.jpg" },
+  { src: "fotos/foto3.jpg" },
+  { src: "fotos/foto4.jpg" },
+  { src: "fotos/foto5.jpg" },
+  { src: "fotos/foto6.jpg" },
+  { src: "fotos/foto7.jpg" },
+  { src: "fotos/foto8.jpg" },
+  { src: "fotos/foto9.jpg" },
+  { src: "fotos/foto10.jpg" },
+  { src: "fotos/foto11.jpg" },
+  { src: "fotos/foto12.jpg" },
+  { src: "fotos/foto13.jpg" },
+  { src: "fotos/foto14.jpg" },
+  { src: "fotos/foto15.jpg" },
+  { src: "fotos/foto16.jpg" },
+  { src: "fotos/foto17.jpg" },
+  { src: "fotos/foto18.jpg" },
+  { src: "fotos/foto19.jpg" },
+  { src: "fotos/foto20.jpg" },
+  { src: "fotos/foto21.jpg" },
+  { src: "fotos/foto22.jpg" },
+  { src: "fotos/foto23.jpg" },
+  { src: "fotos/foto24.jpg" },
+  { src: "fotos/foto25.jpg" },
+  { src: "fotos/foto26.jpg" },
+  { src: "fotos/foto27.jpg" },
+  { src: "fotos/foto28.jpg" },
+  { src: "fotos/foto29.jpg" }
 ];
 
 let i = 0;
@@ -910,13 +894,12 @@ function stopAutoSlide(){
 function restartAutoSlide(){
   startAutoSlide();
 }
-
 /* ===== TEXTOS + TYPEWRITER ===== */
 const textos = [
   "Aqui tu nene cambio...\n\n Si estás leyendo esto significa que hemos llegado hasta Navidad  (y que todavía no me has chutado ).\n\n Y bueno en Venezuela el 24 se dan los regalos entonces, te he preparado este gestico.\n\nFeliz Navidad, gordita ❤️. Ojalá se te cumplan los deseos, te llenen de regalos y que uno sea un desodorante si es posible, te rodee la gente que te quiere.",
   "¿Sigues por ahí? No te vayas todavía…\n\nSolo quería decirte que me alegra muchísimo que hayas aparecido en mi vida y que sigas. A veces todo esto parece un sueño lucido feliz de esos. \n\n¿Quién nos iba a decir hace tres meses que una catalanita gitanita y un caribeño medio europeo acabarían en esta situación por unos días en una isla",
   "Buenos solo para decirte que menos mal que eres inteligente, chambeadora, creativa, graciosa (aveces), me sorprendes cuando escuchas o te metes en conversaciones ajenas en el metro por que te gusta analizar grupos o parejitas por ahi y  bueno esa actitud que tienes de que todo se puede y de que se pueden hacer 7 planes en 2 horas (Que aveces nos hace estar siempre ir con prisa) que me encanta. Esta carta aparte es para que recuerdes que puedes con todo!! La cocina y el orden tenemos que ir mejorandolo",
-  "Ya nos hemos aguantado por tres meses! Hemos vivido muchas, y lo de que tu madre nos regañe por audio solidifica esto que estamos contruyendo \n\n A la izquierda tienes un recopilatorio de unos Fotos cuidadosamente seleccionadas que resumen estos meses!"
+  "Ya nos hemos aguantado por tres meses! Hemos vivido muchas, y lo de que tu madre nos regañe por audio solidifica esto que estamos contruyendo \n\n A la izquierda tienes un recopilatorio de unos fotos cuidadosamente seleccionadas que resumen estos meses!"
 ];
 
 let ti = 0;
@@ -966,7 +949,11 @@ document.getElementById("nextText").addEventListener("click", () => {
 });
 renderText();
 
-/* ===== VIDEOS + thumbnails ===== */
+/* ==================================================
+   PÁGINA 2: VIDEOS EN ORDEN (CON SONIDO)
+   + "ALARGAR" VIDEOS REPITIENDO
+   + ✅ thumbnails con comentario
+   ================================================== */
 const videos = [
   { src: "videos/vid1.mp4",  label: "1", comment: " Simplemente aura..." },
   { src: "videos/vid2.mp4",  label: "2", comment: " Gitanada historica... Durisimo" },
@@ -1015,6 +1002,7 @@ function armVideoFallback(){
   }, VIDEO_FALLBACK_MS);
 }
 
+/* ✅ NUEVO: render thumbnails */
 function renderVideoThumbs(){
   if(!videoThumbs || !videos.length) return;
   videoThumbs.innerHTML = "";
@@ -1089,7 +1077,10 @@ vid.addEventListener("ended", () => {
 prevVideoBtn.addEventListener("click", prevVideo);
 nextVideoBtn.addEventListener("click", nextVideo);
 
-/* ===== REGALO ===== */
+/* ==================================================
+   SORPRESA: “El regalo es...” -> abre -> video corto
+   y al terminar, sale la IMAGEN del regalo real
+   ================================================== */
 const giftOverlay = document.getElementById("giftOverlay");
 const giftClose = document.getElementById("giftClose");
 const giftCard = document.getElementById("giftCard");
@@ -1099,17 +1090,21 @@ const giftReveal = document.getElementById("giftReveal");
 const giftImage = document.getElementById("giftImage");
 const giftHint = document.querySelector(".giftHint");
 
+// tu vídeo corto de sorpresa:
 const GIFT_VIDEO_SRC = "videos/sorpresa.mp4";
-const GIFT_IMAGE_SRC = "Fotos/sorpresa.jpg";
+/* ✅ FIX mínimo para que funcione en hosting */
+const GIFT_IMAGE_SRC = "fotos/sorpresa.jpg";
 
 function openGift(){
   giftOverlay.classList.add("show");
   giftOverlay.setAttribute("aria-hidden","false");
 
+  // reset overlay state
   giftCard.classList.remove("showGiftImage");
   giftBox.classList.remove("open");
   giftReveal.classList.remove("show");
 
+  // reset video
   giftVideo.pause();
   giftVideo.currentTime = 0;
   giftVideo.src = GIFT_VIDEO_SRC;
@@ -1117,10 +1112,20 @@ function openGift(){
   giftVideo.volume = 1.0;
   giftVideo.load();
 
+  // prepare image
   giftImage.src = GIFT_IMAGE_SRC;
 
-  setTimeout(() => { giftReveal.classList.add("show"); }, 220);
-  setTimeout(() => { giftBox.classList.add("open"); }, 1100);
+  // 1) mostrar “El regalo es...”
+  setTimeout(() => {
+    giftReveal.classList.add("show");
+  }, 220);
+
+  // 2) abrir regalo
+  setTimeout(() => {
+    giftBox.classList.add("open");
+  }, 1100);
+
+  // 3) reproducir video
   setTimeout(() => {
     const p = giftVideo.play();
     if(p && typeof p.catch === "function") p.catch(()=>{});
@@ -1137,6 +1142,7 @@ function closeGift(){
   giftVideo.currentTime = 0;
 }
 
+// ✅ Al terminar el video: mostrar imagen del regalo real (NO cerrar)
 giftVideo.addEventListener("ended", () => {
   giftCard.classList.add("showGiftImage");
   if(giftHint){
